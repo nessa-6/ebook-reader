@@ -1,7 +1,12 @@
 from django.shortcuts import render
-from django.http import JsonResponse
+from rest_framework.response import Response
+from rest_framework.decorators import api_view
+from .models import Book
+from .serializers import BookSerializer
+
 # Create your views here.
 
+@api_view(['GET']) # decorator
 def getRoutes(request):
     routes = [
         {
@@ -17,4 +22,16 @@ def getRoutes(request):
             'description': 'Returns a single book object'
         }
     ]
-    return JsonResponse(routes, safe=False)
+    return Response(routes)
+
+@api_view(['GET'])
+def getBooks(request):
+    books = Book.objects.all()
+    serializer  = BookSerializer(books, many=True) # serialize multiple objects as a queryset
+    return Response(serializer.data)
+
+@api_view(['GET'])
+def getBook(request, pk):
+    books = Book.objects.get(id=pk) # gets one with id
+    serializer  = BookSerializer(books, many=False) # serialize one object as a queryset
+    return Response(serializer.data)
