@@ -1,11 +1,12 @@
 import React from 'react'
+import { Link } from 'react-router-dom'
 
 // destructures book
 const ListItem = ({book}) => {
   return (
-      <div>
-          <h3>{book.body}</h3>
-    </div>
+      <Link to={`/book/${book.id}`}>
+          <h3>{book.title}</h3>
+    </Link>
   )
 }
 
