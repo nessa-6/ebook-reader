@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
+import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
+import { Link } from 'react-router-dom'
+
 
 const BookPage = ({ match }) => {
   let params = useParams();
@@ -17,7 +20,15 @@ const BookPage = ({ match }) => {
   }, [bookId]);
   
     return (
-    <div>
+      <div className="book">
+        <div className="book-header">
+          <h3>
+            <Link to='/'>
+              <ArrowBackIosIcon/>
+            </Link>
+          </h3>
+          {book?.title}
+        </div>
       <p>{book?.body}</p>
       {/* ? avoids errors from book not loading yet */}
     </div>

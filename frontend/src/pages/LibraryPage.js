@@ -20,8 +20,13 @@ const LibraryPage = () => {
     } 
 
     return (
-        <div>
-            <div className="library">
+        <div className="books">
+            <div className="books-header">
+                <h2 className="books-title">&#9782; Books</h2>
+                <p className="books-count">{books.length}</p>
+            </div>
+
+            <div className="books-list">
                 {books.map((book, index) => (
                     <ListItem key={index} book={book} />
                 ))}
