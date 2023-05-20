@@ -5,7 +5,6 @@ import { Link, useNavigate } from "react-router-dom";
 import TranslationItem from "../components/TranslationItem";
 import { Button } from "@mui/material";
 
-let data = [];
 
 const TranslationListPage = () => {
   let params = useParams();
@@ -18,7 +17,6 @@ const TranslationListPage = () => {
     let getDict = async () => {
       let response = await fetch(`/main/library/${bookId}/translations/`);
       let data = await response.json();
-      console.log(data);
       let translations = data["translations"];
       setDict(translations);
     };
@@ -57,7 +55,7 @@ const TranslationListPage = () => {
     <div className="book">
       <div className="book-header">
       <h3>
-        <Link to="/">
+        <Link to={`/book/${bookId}/`}>
           <ArrowBackIosIcon />
         </Link>
         </h3>
@@ -80,7 +78,7 @@ const TranslationListPage = () => {
                 handleOnChange(index, "definition", e.target.value)
               }
             />
-            <button onClick={() => handleSubmit(index)}>Submit</button>
+            <Button onClick={() => handleSubmit(index)}>Submit</Button>
           </div>
         ))}
       </div>

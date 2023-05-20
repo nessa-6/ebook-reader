@@ -5,8 +5,8 @@ import { Link } from 'react-router-dom'
 const TranslationItem = ({defaultValue, onChange}) => {
   return (
     <div className="translation-list-item">
-        <textarea defaultValue={defaultValue} onChange={onChange}></textarea>
-      </div>
+      <textarea defaultValue={defaultValue} onChange={onChange}></textarea>
+    </div>
   );
 }
 

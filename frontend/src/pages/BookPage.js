@@ -3,6 +3,10 @@ import { useParams } from "react-router-dom";
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import { Link, useNavigate } from "react-router-dom";
 import ListItem from "../components/ListItem";
+import IconButton from "@mui/material/IconButton";
+import Menu from "@mui/material/Menu";
+import MenuItem from "@mui/material/MenuItem";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
 
 const BookPage = () => {
   let params = useParams();
@@ -17,17 +21,25 @@ const BookPage = () => {
       let data = await response.json();
       // data is dict with fields id, transaltions, title, body, last_read
       // console.log(data);
-      
+
       setBook(data);
     };
     getBook();
   }, [bookId]);
 
-
   let handleSubmit = () => {
     history("/"); // sends user back to homepage
   };
-  
+
+  let [anchorEl, setAnchorEl] = React.useState(null);
+  let open = Boolean(anchorEl);
+  let handleClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+  let handleClose = () => {
+    setAnchorEl(null);
+  };
+
   return (
     <div className="book">
       <div className="book-header">
@@ -35,10 +47,42 @@ const BookPage = () => {
           <ArrowBackIosIcon onClick={handleSubmit} />
         </h3>
         {book?.title}
+
+        <IconButton
+          aria-label="more"
+          id="long-button"
+          aria-controls={open ? "long-menu" : undefined}
+          aria-expanded={open ? "true" : undefined}
+          aria-haspopup="true"
+          onClick={handleClick}
+        >
+          <MoreVertIcon />
+        </IconButton>
+        <Menu
+          id="long-menu"
+          MenuListProps={{
+            "aria-labelledby": "long-button",
+          }}
+          anchorEl={anchorEl}
+          open={open}
+          onClose={handleClose}
+          PaperProps={{
+            style: {
+              maxHeight: 48 * 4.5,
+              width: "20ch",
+            },
+          }}
+        >
+          <MenuItem onClick={handleClose}>Progress</MenuItem>
+          <Link to={`/book/${bookId}/translations`}>
+            <MenuItem>Translations</MenuItem>
+          </Link>
+        </Menu>
       </div>
-      <p>{book?.body}</p>
+      <p className="chapter">{book?.body}</p>
     </div>
   );
 };
 
 export default BookPage;
+
