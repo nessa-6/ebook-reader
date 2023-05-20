@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import { Link, useNavigate } from "react-router-dom";
-import ListItem from "../components/ListItem";
 import IconButton from "@mui/material/IconButton";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
@@ -20,7 +19,6 @@ const BookPage = () => {
       let response = await fetch(`/main/library/${bookId}/`); // backticks allow dynamic parameters
       let data = await response.json();
       // data is dict with fields id, transaltions, title, body, last_read
-      // console.log(data);
 
       setBook(data);
     };

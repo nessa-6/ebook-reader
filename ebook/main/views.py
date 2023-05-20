@@ -3,7 +3,6 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from .models import Book, Translation
 from .serializers import BookSerializer, TranslationSerializer
-from pprint import pprint
 
 # Create your views here.
 

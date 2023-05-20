@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import TranslationItem from "../components/TranslationItem";
 import { Button } from "@mui/material";
 
 
 const TranslationListPage = () => {
   let params = useParams();
-  let history = useNavigate();
   let bookId = params.id;
   let [dict, setDict] = useState(null);
   let [modifiedIndices, setModifiedIndices] = useState([]);
