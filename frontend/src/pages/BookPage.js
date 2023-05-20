@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from "react-router-dom";
+import ListItem from "../components/ListItem";
 
-
-const BookPage = ({ match }) => {
+const BookPage = () => {
   let params = useParams();
+  let history = useNavigate();
   let bookId = params.id;
   let [book, setBook] = useState(null); // default value is null
 
@@ -14,23 +15,28 @@ const BookPage = ({ match }) => {
     let getBook = async () => {
       let response = await fetch(`/main/library/${bookId}/`); // backticks allow dynamic parameters
       let data = await response.json();
+      // data is dict with fields id, transaltions, title, body, last_read
+      // console.log(data);
+      
       setBook(data);
     };
     getBook();
   }, [bookId]);
+
+
+  let handleSubmit = () => {
+    history("/"); // sends user back to homepage
+  };
   
-    return (
-      <div className="book">
-        <div className="book-header">
-          <h3>
-            <Link to='/'>
-              <ArrowBackIosIcon/>
-            </Link>
-          </h3>
-          {book?.title}
-        </div>
+  return (
+    <div className="book">
+      <div className="book-header">
+        <h3>
+          <ArrowBackIosIcon onClick={handleSubmit} />
+        </h3>
+        {book?.title}
+      </div>
       <p>{book?.body}</p>
-      {/* ? avoids errors from book not loading yet */}
     </div>
   );
 };

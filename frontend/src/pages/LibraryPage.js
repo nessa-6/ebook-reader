@@ -36,3 +36,12 @@ const LibraryPage = () => {
 };
 
 export default LibraryPage;
+
+/*
+{dict?.map((x) => (
+    <ListItem key={x.id}>
+      <textarea defaultValue={x["term"]}></textarea>
+    </ListItem>
+))
+}
+  */

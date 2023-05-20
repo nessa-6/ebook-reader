@@ -64,7 +64,7 @@ a {
 
 .app {
   width: 100%;
-  max-width: 480px;
+  max-width: 90%;
   height: 88vh;
   margin: 0 auto;
   background-color: var(--color-white);
@@ -191,6 +191,34 @@ a {
 .floating-button > svg {
   fill: var(--color-bg);
 }
+
+
+.translation-list-item textarea {
+  background-color: var(--color-white);
+  border: none;
+  padding: 16px 12px;
+  width: 100%;
+  height: fit-content;
+  resize: none;
+  scrollbar-width: none;
+}
+
+.translation-container {
+  border-bottom: 1px solid  var(--color-border);
+  margin-bottom: 12px;
+  padding: 8px 16px;
+  transition: all 0.2s ease-in-out;
+  display: flex;
+  justify-content: space-between;
+  height: 100px;
+  align-content: center;
+}
+
+.translation-container:hover {
+  background-color: var(--color-bg);
+  cursor: pointer;
+}
+
 
 
 
