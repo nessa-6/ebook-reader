@@ -7,9 +7,8 @@ class Book(models.Model):
     body = models.TextField(null=True, blank=True)
     last_read = models.DateTimeField(auto_now=True, blank=True)
     
+    # TODO: create chapter field
     # TODO: split book into pages
-    # TODO: make translations into a dictionary of lists where key = page number and value = list of translations
-        # e.g. {1: [<Translation object>, <Translation object>], 2: [<Translation object>]}
     
     def __str__(self):
         return f'{self.title}'
@@ -22,3 +21,5 @@ class Translation(models.Model):
     
     def __str__(self):
         return f'{self.term}: {self.definition}'
+    
+    # TODO: create chapter foreign key to categorise translations by chapter

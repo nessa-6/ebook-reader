@@ -35,7 +35,6 @@ const TranslationListPage = () => {
   let handleOnChange = (index, field, value) => {
     const newData = [...dict];
     newData[index][field] = value;
-    //data["translations"] = newData;
     setDict(newData);
     // Add the modified index to the modifiedIndices state if it's not already present
     if (!modifiedIndices.includes(index)) {

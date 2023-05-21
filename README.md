@@ -16,4 +16,4 @@ use npm start in /frontend to run React frontend
 
 django admin: username admin, password admin, email admin@admin.com
 
-username vanessa email vanessa@dare.com password dare1234
+reference: https://www.youtube.com/watch?v=tYKRAXIio28
