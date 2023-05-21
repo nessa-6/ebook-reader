@@ -7,6 +7,11 @@ import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 
+// TODO: Create hyperlinks for each word to GoogleTranslateAPI?
+// TODO: Create popup (new file?) for translation and to save translation to list
+// TODO: Highlight all instances of word
+// TODO: Keep track of how many times word has been clicked 
+
 const BookPage = () => {
   let params = useParams();
   let history = useNavigate();

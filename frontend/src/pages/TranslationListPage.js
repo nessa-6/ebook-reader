@@ -6,6 +6,8 @@ import TranslationItem from "../components/TranslationItem";
 import { Button } from "@mui/material";
 
 
+// TODO: Make links to references in text
+
 const TranslationListPage = () => {
   let params = useParams();
   let bookId = params.id;
