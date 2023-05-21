@@ -4,6 +4,7 @@ import "./App.css";
 import Header from "./components/Header";
 import LibraryPage from "./pages/LibraryPage";
 import BookPage from "./pages/BookPage";
+import TranslationListPage from './pages/TranslationListPage'
 
 function App() {
   return (
@@ -13,9 +14,9 @@ function App() {
           <Header />
 
           <Routes>
-            {/* Matches / exactly */}
             <Route path="/" exact element={<LibraryPage />} />
             <Route path="/book/:id" element={<BookPage />} />
+            <Route path="/book/:id/translations" element={<TranslationListPage />} />
           </Routes>
         </div>
       </div>
