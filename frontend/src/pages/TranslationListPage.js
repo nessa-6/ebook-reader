@@ -4,7 +4,7 @@ import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import { Link } from "react-router-dom";
 import TranslationItem from "../components/TranslationItem";
 import { Button } from "@mui/material";
-
+import DeleteIcon from "@mui/icons-material/Delete";
 
 // TODO: Make links to references in text
 
@@ -25,16 +25,33 @@ const TranslationListPage = () => {
   }, [bookId]); // dependency
 
   let updateTranslation = async (updatedData) => {
-    await fetch(`/main/library/${bookId}/update/`, {
-      method: "PUT",
+    if (updatedData) {
+      await fetch(`/main/library/${bookId}/translations/update/`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updatedData.modifiedDicts),
+      });
+    }
+  };
+
+  let deleteTranslation = async (translation, index) => {
+    let response = await fetch(`/main/library/${bookId}/translations/delete/`, {
+      method: "DELETE",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(updatedData.modifiedDicts),
+      body: JSON.stringify({ id: translation["id"] }),
     });
+    if (response.status === 200) {
+      let data = await response.json();
+      setDict(data);
+    }
   };
 
-  let handleOnChange = (index, field, value) => {
+  let handleOnChange = (e, index, field, value) => {
+    e.preventDefault();
     const newData = [...dict];
     newData[index][field] = value;
     setDict(newData);
@@ -46,39 +63,46 @@ const TranslationListPage = () => {
 
   let handleSubmit = () => {
     if (modifiedIndices.length > 0) {
-      const modifiedDicts = modifiedIndices.map((index) => dict[index]);
+      let modifiedDicts = modifiedIndices
+        .map((index) => dict[index])
+        .filter((item) => item !== undefined);
       updateTranslation({ modifiedDicts });
     }
   };
 
+  // in translations page you can edit translation, see wiki dictionary, number of times clicked, previews of sentences examples
+  // get rid of submit, all should change on arrow click
   return (
     <div className="book">
       <div className="book-header">
-      <h3>
-        <Link to={`/book/${bookId}/`}>
-          <ArrowBackIosIcon />
-        </Link>
+        <h3>
+          <Link to={`/book/${bookId}/`}>
+            <ArrowBackIosIcon onClick={() => handleSubmit()} />
+          </Link>
         </h3>
         <h2>{dict?.length} Translations</h2>
       </div>
-      
 
       <div className="books-list">
         {dict?.map((x, index) => (
           <div key={index} className="translation-container">
             <TranslationItem
               key={`term_${index}`}
-              defaultValue={x['term']}
-              onChange={(e) => handleOnChange(index, "term", e.target.value)}
+              value={x["term"]}
+              type="term"
             />
             <TranslationItem
               key={`definition_${index}`}
-              defaultValue={x["definition"]}
+              value={x["definition"]}
+              type="definition"
               onChange={(e) =>
-                handleOnChange(index, "definition", e.target.value)
+                handleOnChange(e, index, "definition", e.target.value)
               }
             />
-            <Button onClick={() => handleSubmit(index)}>Submit</Button>
+            <div className="icons">
+              {x["timesTranslated"]}
+              <DeleteIcon cursor="pointer" onClick={() => deleteTranslation(x, index)} />
+            </div>
           </div>
         ))}
       </div>

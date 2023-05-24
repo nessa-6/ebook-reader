@@ -2,10 +2,10 @@ import React from 'react'
 import { Link } from 'react-router-dom'
 
 // destructures translation dict
-const TranslationItem = ({defaultValue, onChange}) => {
+const TranslationItem = ({value, onChange, type}) => {
   return (
     <div className="translation-list-item">
-      <textarea defaultValue={defaultValue} onChange={onChange}></textarea>
+      <textarea value={value} onChange={onChange} disabled={type === 'term'}></textarea>
     </div>
   );
 }
