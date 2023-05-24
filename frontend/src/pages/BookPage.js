@@ -9,6 +9,7 @@ import MoreVertIcon from "@mui/icons-material/MoreVert";
 import { Button } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import WordItem from "../components/WordItem";
+import BookHeader from "../components/BookHeader";
 
 // save translation to list on double click
 // TODO: Highlight all instances of word
@@ -24,7 +25,6 @@ const BookPage = () => {
   let [translations, setTranslations] = useState([]);
   let [terms, setTerms] = useState([]);
   let [hoveredIndex, setHoveredIndex] = useState(null);
-  let [timesTranslated, setTimesTranslated] = useState({});
 
   // adding dependencies prevents infinite loop
   useEffect(() => {
@@ -68,14 +68,7 @@ const BookPage = () => {
     history("/"); // sends user back to homepage
   };
 
-  let [anchorEl, setAnchorEl] = React.useState(null);
-  let open = Boolean(anchorEl);
-  let handleClick = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
-  let handleClose = () => {
-    setAnchorEl(null);
-  };
+  
   let handleDelete = async () => {
     await fetch(`/main/library/${bookId}/delete/`, {
       method: "DELETE",
@@ -108,7 +101,6 @@ const BookPage = () => {
     });
     setTerms(terms.concat([word.toLowerCase()]));
     getTranslations();
-    console.log("created translation");
   };
 
   const handleTranslation = async (e, word, indexBook) => {
@@ -138,46 +130,8 @@ const BookPage = () => {
 
   return (
     <div className="book">
-      <div className="book-header">
-        <h3>
-          <ArrowBackIosIcon onClick={handleBack} />
-        </h3>
-        {book?.title}
 
-        <IconButton
-          aria-label="more"
-          id="long-button"
-          aria-controls={open ? "long-menu" : undefined}
-          aria-expanded={open ? "true" : undefined}
-          aria-haspopup="true"
-          onClick={handleClick}
-        >
-          <MoreVertIcon />
-        </IconButton>
-        <Menu
-          id="long-menu"
-          MenuListProps={{
-            "aria-labelledby": "long-button",
-          }}
-          anchorEl={anchorEl}
-          open={open}
-          onClose={handleClose}
-          PaperProps={{
-            style: {
-              maxHeight: 48 * 4.5,
-              width: "20ch",
-            },
-          }}
-        >
-          <MenuItem onClick={handleClose}>Progress</MenuItem>
-          <Link to={`/book/${bookId}/translations`}>
-            <MenuItem>Translations</MenuItem>
-          </Link>
-          <MenuItem onClick={handleDelete}>
-            <DeleteIcon />
-          </MenuItem>
-        </Menu>
-      </div>
+      <BookHeader handleBack={handleBack} book={book}  bookId={bookId} handleDelete={handleDelete} />
       <div className="chapter">
         {book?.map((word, index) =>
           word != "" ? (
