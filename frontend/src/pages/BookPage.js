@@ -1,19 +1,12 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams } from "react-router-dom";
-import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import { Link, useNavigate } from "react-router-dom";
-import IconButton from "@mui/material/IconButton";
-import Menu from "@mui/material/Menu";
-import MenuItem from "@mui/material/MenuItem";
-import MoreVertIcon from "@mui/icons-material/MoreVert";
-import { Button } from "@mui/material";
-import DeleteIcon from "@mui/icons-material/Delete";
 import WordItem from "../components/WordItem";
 import BookHeader from "../components/BookHeader";
+import LoadingItem from "../components/LoadingItem";
 
-// save translation to list on double click
-// TODO: Highlight all instances of word
-// TODO: Keep track of how many times word has been clicked
+
+// TODO: add chapters and pages
 
 const BookPage = () => {
   let params = useParams();
@@ -150,6 +143,7 @@ const BookPage = () => {
         bookId={bookId}
         handleDelete={handleDelete}
       />
+      
       <div className="chapter">
         {book?.map((word, index) =>
           word != "" ? (
