@@ -6,6 +6,7 @@ class Book(models.Model):
     title = models.CharField(max_length=200, default='Title', blank=True)
     body = models.TextField(null=True)
     last_read = models.DateTimeField(auto_now=True)
+    normalisation = models.TextField(null=True, blank=True)
     
     # TODO: create chapter field
     # TODO: split book into pages
@@ -14,8 +15,8 @@ class Book(models.Model):
         return f'{self.title}'
 
 class Translation(models.Model):
-    term = models.TextField(null=True, blank=True)
-    definition = models.TextField(null=True, blank=True)
+    term = models.CharField(max_length=300, null=True, blank=True)
+    definition = models.CharField(max_length=400, null=True, blank=True)
     added = models.DateTimeField(auto_now=True)
     book_id = models.ManyToManyField(Book, related_name="translations")
     timesTranslated = models.IntegerField(default=1)
@@ -24,3 +25,4 @@ class Translation(models.Model):
         return f'{self.term}: {self.definition}'
     
     # TODO: create chapter foreign key to categorise translations by chapter
+    

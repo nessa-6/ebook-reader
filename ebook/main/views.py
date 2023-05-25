@@ -6,6 +6,8 @@ from .serializers import BookSerializer, TranslationSerializer
 from googletrans import Translator
 from django.http import JsonResponse
 import re
+import spacy
+import json
 
 # Create your views here.
 
@@ -35,9 +37,34 @@ def getBooks(request):
 
 @api_view(['GET'])
 def getBook(request, pk):
-    books = Book.objects.get(id=pk) # gets one with id
-    serializer = BookSerializer(books, many=False) # serialize one object as a queryset
-    return Response(re.split(r'\s|\n', serializer.data['body']))
+    book = Book.objects.get(id=pk) # gets one with id
+    serializer = BookSerializer(book, many=False) # serialize one object as a queryset
+    split_words = re.split(r'\s|\n', serializer.data['body'])
+    trimmed_split_words = [re.sub(r'[^a-zA-Z0-9]+$', '', x) for x in split_words]
+    
+    # lemma
+    if book.normalisation is None or book.normalisation == '':
+        nlp = spacy.load('fr_core_news_md')
+        doc = nlp(f'{" ".join(trimmed_split_words)}')
+        lemmas = {}
+        for token in doc:
+            if str(token) == ' ':
+                continue
+            if token.lemma_ in lemmas:
+                if str(token).lower() in lemmas[token.lemma_]:
+                    continue
+                else:
+                    lemmas[token.lemma_].append(str(token).lower())
+            else:
+                lemmas[token.lemma_] = [str(token).lower()]
+        normalisation = lemmas
+        book.normalisation = json.dumps(lemmas)
+        book.save()
+    else:
+        normalisation = json.loads(book.normalisation)
+        
+    
+    return Response({'words': split_words, 'normalisation': normalisation})
 
 @api_view(['POST'])
 def createTranslation(request, pk):
@@ -55,7 +82,6 @@ def createTranslation(request, pk):
             translation.timesTranslated += 1
             translation.save()
         else:
-            # TODO: strip punctuation
             translator = Translator()
             definition = translator.translate(text=data['term'], dest='en', src='fr').text.lower()
             book = Book.objects.filter(id=pk)
@@ -108,10 +134,6 @@ def getTranslation(request, pk, word):
     translator = Translator()
     translation = translator.translate(text=word, dest='en', src='fr')
     if Translation.objects.filter(term=word): # if term exists
-        translation_obj = Translation.objects.get(term=word)
         return JsonResponse({'text':translation.text.lower()})
-        # translation_obj.timesTranslated += 1
-        # translation_obj.save()
-        # return JsonResponse({'text':translation.text.lower(), 'timesTranslated': translation_obj.timesTranslated})
     else:
-        return JsonResponse({'text':translation.text.lower()})
+        return JsonResponse({'text':translation.text.lower()})    

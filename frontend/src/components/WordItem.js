@@ -5,21 +5,27 @@ const WordItem = ({
   hoveredIndex,
   handleTranslation,
   word,
+  trimmedWord,
+  lemma,
   translated,
   translations,
   translatedWord,
-    setHoveredIndex,
+  setHoveredIndex,
   underlineColour,
 }) => {
   return (
     <div
       key={index}
       className={hoveredIndex === index ? "clicked-word" : "word"}
-      onClick={(e) => handleTranslation(e, word, index)}
+      onClick={(e) => handleTranslation(e, trimmedWord, index)}
       onMouseLeave={() => setHoveredIndex(null)}
       style={
-        (translated && hoveredIndex === index) || translations.includes(word.toLowerCase())
-          ? { textDecoration: "underline", textDecorationColor: underlineColour }
+        (translated && hoveredIndex === index) ||
+        translations.includes(lemma)
+          ? {
+              textDecoration: "underline",
+              textDecorationColor: underlineColour,
+            }
           : {}
       }
     >

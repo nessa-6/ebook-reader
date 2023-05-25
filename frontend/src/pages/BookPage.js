@@ -25,15 +25,17 @@ const BookPage = () => {
   let [translations, setTranslations] = useState([]);
   let [terms, setTerms] = useState([]);
   let [hoveredIndex, setHoveredIndex] = useState(null);
+  let [lemmas, setLemmas] = useState({});
 
   // adding dependencies prevents infinite loop
   useEffect(() => {
     let getBook = async () => {
       let response = await fetch(`/main/library/${bookId}/`); // backticks allow dynamic parameters
       let data = await response.json();
-      // data is list of words in book
+      // data is a dict of list of words in book and lemmas
 
-      setBook(data);
+      setBook(data["words"]);
+      setLemmas(data["normalisation"]);
     };
     getBook();
 
@@ -42,10 +44,11 @@ const BookPage = () => {
 
   const getCounterByTerm = useCallback(
     (translations, term) => {
+      // find the dict/translation in translations with the value term
       const translation = translations.find(
-        (dict) => dict.term.toLowerCase().trim() === term.toLowerCase().trim()
+        (dict) => dict.term.trim() === term.trim()
       );
-      if (translation) {
+      if (translation) { // if it exists i.e. if it has been translated before
         return translation.timesTranslated;
       } else {
         return 0;
@@ -68,7 +71,6 @@ const BookPage = () => {
     history("/"); // sends user back to homepage
   };
 
-  
   let handleDelete = async () => {
     await fetch(`/main/library/${bookId}/delete/`, {
       method: "DELETE",
@@ -80,10 +82,10 @@ const BookPage = () => {
   };
 
   const getTranslation = async (word, index) => {
-    let res = await fetch(`/main/library/${bookId}/${word.toLowerCase()}`); // backticks allow dynamic parameters
-    let data = await res.json();
+    let res = await fetch(`/main/library/${bookId}/${word}`); // backticks allow dynamic parameters
+    let translation = await res.json();
     setHoveredIndex(index);
-    setTranslatedWord(data.text);
+    setTranslatedWord(translation.text);
     isTranslated(true);
     //getTranslations();
   };
@@ -91,25 +93,37 @@ const BookPage = () => {
   // add dictionary hyperlink in hamburger for any failed translations
   // recognise different variants as same word (eg grand and grande, joue and jouer)
 
-  const createTranslation = async (word) => {
+  function getLemmaByValue(value) {
+    let lemma = Object.keys(lemmas).find((lemma) => lemmas[lemma].includes(value));
+    if (lemma == null) {
+      lemma = value.toLowerCase()
+    }
+    return lemma
+  }
+
+  const createTranslation = async (lemma) => {
     await fetch(`/main/library/${bookId}/translations/create/`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ term: word.toLowerCase(), book_id: bookId }),
+      body: JSON.stringify({
+        term: lemma,
+        book_id: bookId,
+      }),
     });
-    setTerms(terms.concat([word.toLowerCase()]));
+    setTerms(terms.concat([lemma]));
     getTranslations();
   };
 
-  const handleTranslation = async (e, word, indexBook) => {
+  const handleTranslation = async (e, trimmedWord, indexBook) => {
     switch (e.detail) {
       case 1: // single click
-        getTranslation(word, indexBook);
+        getTranslation(trimmedWord, indexBook);
         break;
       case 2: // double click
-        createTranslation(word, translatedWord);
+        let lemma = getLemmaByValue(trimmedWord.toLowerCase());
+        createTranslation(lemma);
         break;
     }
   };
@@ -130,8 +144,12 @@ const BookPage = () => {
 
   return (
     <div className="book">
-
-      <BookHeader handleBack={handleBack} book={book}  bookId={bookId} handleDelete={handleDelete} />
+      <BookHeader
+        handleBack={handleBack}
+        book={book}
+        bookId={bookId}
+        handleDelete={handleDelete}
+      />
       <div className="chapter">
         {book?.map((word, index) =>
           word != "" ? (
@@ -141,12 +159,14 @@ const BookPage = () => {
               hoveredIndex={hoveredIndex}
               handleTranslation={handleTranslation}
               word={word}
+              trimmedWord={word.replace(/[^a-zA-Z0-9]+$/, "")}
+              lemma={getLemmaByValue(word.replace(/[^a-zA-Z0-9]+$/, "").toLowerCase())}
               translated={translated}
               translations={terms}
               translatedWord={translatedWord}
               setHoveredIndex={setHoveredIndex}
               underlineColour={getUnderlineColour(
-                getCounterByTerm(translations, word)
+                getCounterByTerm(translations, getLemmaByValue(word.replace(/[^a-zA-Z0-9]+$/, "")))
               )}
             />
           ) : (
