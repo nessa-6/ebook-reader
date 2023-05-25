@@ -123,15 +123,17 @@ const BookPage = () => {
   const getUnderlineColour = (timesTranslated) => {
     switch (timesTranslated) {
       case 0:
-        return "green";
+        return "cream";
       case 1:
-        return "green";
+        return "#85EC91";
       case 2:
-        return "yellow";
+        return "#D5EA81";
       case 3:
-        return "red";
+        return "#FBB95F";
+      case 4:
+        return '#F68A6A'
       default:
-        return "black";
+        return "#BE4A4A";
     }
   };
 

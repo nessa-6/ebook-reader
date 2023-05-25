@@ -20,11 +20,11 @@ const WordItem = ({
       onClick={(e) => handleTranslation(e, trimmedWord, index)}
       onMouseLeave={() => setHoveredIndex(null)}
       style={
-        (translated && hoveredIndex === index) ||
-        translations.includes(lemma)
+        (translated && hoveredIndex === index) || translations.includes(lemma)
           ? {
               textDecoration: "underline",
               textDecorationColor: underlineColour,
+              textDecorationThickness: "2px",
             }
           : {}
       }
