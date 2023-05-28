@@ -3,7 +3,7 @@
 
 
 :root {
-  --color-main: #f68657;
+  --color-main: #58BADC;
   --color-text: #383a3f;
   --color-dark: #1f2124;
   --color-gray: #677;
@@ -15,7 +15,7 @@
 }
 
 .dark {
-  --color-main: #f68657;
+  --color-main: #58BADC;
   --color-text: #d6d1d1;
   --color-dark: #f5f6f7;
   --color-gray: #999;
@@ -107,15 +107,57 @@ a {
 }
 
 .loading-wrapper {
-  position: absolute;
-  width: 100%;
-  height: 100%;
   display: flex;
-  backdrop-filter: opacity(20%);
+  transition: all 0.2s ease-in-out;
+
 }
 
 .loading {
-  margin: auto
+  margin: auto;
+  color: var(--color-main) !important;
+}
+
+.loader {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: block;
+  margin:15px auto;
+  position: relative;
+  color: var(--color-main);
+  left: -100px;
+  box-sizing: border-box;
+  animation: shadowRolling 2s linear infinite;
+}
+
+@keyframes shadowRolling {
+  0% {
+    box-shadow: 0px 0 rgba(255, 255, 255, 0), 0px 0 rgba(255, 255, 255, 0), 0px 0 rgba(255, 255, 255, 0), 0px 0 rgba(255, 255, 255, 0);
+  }
+  12% {
+    box-shadow: 100px 0 white, 0px 0 rgba(255, 255, 255, 0), 0px 0 rgba(255, 255, 255, 0), 0px 0 rgba(255, 255, 255, 0);
+  }
+  25% {
+    box-shadow: 110px 0 white, 100px 0 white, 0px 0 rgba(255, 255, 255, 0), 0px 0 rgba(255, 255, 255, 0);
+  }
+  36% {
+    box-shadow: 120px 0 white, 110px 0 white, 100px 0 white, 0px 0 rgba(255, 255, 255, 0);
+  }
+  50% {
+    box-shadow: 130px 0 white, 120px 0 white, 110px 0 white, 100px 0 white;
+  }
+  62% {
+    box-shadow: 200px 0 rgba(255, 255, 255, 0), 130px 0 white, 120px 0 white, 110px 0 white;
+  }
+  75% {
+    box-shadow: 200px 0 rgba(255, 255, 255, 0), 200px 0 rgba(255, 255, 255, 0), 130px 0 white, 120px 0 white;
+  }
+  87% {
+    box-shadow: 200px 0 rgba(255, 255, 255, 0), 200px 0 rgba(255, 255, 255, 0), 200px 0 rgba(255, 255, 255, 0), 130px 0 white;
+  }
+  100% {
+    box-shadow: 200px 0 rgba(255, 255, 255, 0), 200px 0 rgba(255, 255, 255, 0), 200px 0 rgba(255, 255, 255, 0), 200px 0 rgba(255, 255, 255, 0);
+  }
 }
 
 
@@ -204,10 +246,22 @@ a {
   fill: var(--color-bg);
 }
 
+.chapter-name {
+  line-height: normal;
+  font-size: 13px;
+  color: gray;
+  padding-left: 12px;
+}
+
 /*==============================
 =>  Translation Page Styles
 ================================*/
 
+.table-header {
+  display: flex;
+  justify-content: space-between;
+  padding: 0px 30px;
+}
 
 .translation-container {
   border-bottom: 1px solid  var(--color-border);
@@ -230,11 +284,30 @@ a {
   height: -webkit-fill-available;
 }
 
+.timesTranslated {
+  font-size: 30px;
+  padding: 0px 40px;
+}
+
+.icons {
+  display: flex;
+}
+
+.icons > * {
+  align-self: center;
+}
+
 
 /*==============================
 =>  Book Styles
 
 ================================*/
+
+.book {
+  min-height: 90%;
+  display: flex;
+  flex-direction: column;
+}
 
 .book-header {
   display: flex;
@@ -314,17 +387,19 @@ a {
   white-space: nowrap;
   transform: translateX(-50%);
   opacity: 1;
-  animation: fade 5s linear;
+  animation: all 0.2s ease-in-out;
   background-color: #333;
   color: #fff;
   box-shadow: rgba(0, 0, 0, 0.15) 1.95px 1.95px 2.6px;
   line-height: initial;
+  user-select: none;
 }
 
 
 .clicked-word {
   position: relative;
   cursor: default;
+  animation: all 0.2s ease-in-out
 }
 
 .word {
@@ -335,4 +410,26 @@ a {
 .break {
   flex-basis: 100%;
   height: 0;
+}
+
+::selection {
+  background-color: transparent;
+  color: #72BCB3;
+}
+
+::-moz-selection {
+  background-color: transparent;
+  color: #72BCB3;
+}
+
+.empty {
+  flex: 1;
+}
+.css-wjh20t-MuiPagination-ul {
+  justify-content: space-evenly;
+}
+
+.css-187mznn-MuiSlider-root {
+  align-self: center;
+  width: 96%;
 }

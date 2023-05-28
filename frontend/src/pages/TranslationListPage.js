@@ -3,14 +3,17 @@ import { useParams } from "react-router-dom";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import { Link } from "react-router-dom";
 import TranslationItem from "../components/TranslationItem";
-import { Button } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
+import IconButton from "@mui/material/IconButton";
 
 // TODO: Make links to references in text
+// TODO: Sort by timeTranslated
+// TODO: Add search functionality
 
 const TranslationListPage = () => {
   let params = useParams();
   let bookId = params.id;
+  let bookTitle = params.title;
   let [dict, setDict] = useState(null);
   let [modifiedIndices, setModifiedIndices] = useState([]);
 
@@ -19,7 +22,11 @@ const TranslationListPage = () => {
       let response = await fetch(`/main/library/${bookId}/translations/`);
       let data = await response.json();
       let translations = data["translations"];
+      translations.sort(function (a, b) {
+        return b.timesTranslated - a.timesTranslated;
+      }); // sort by number of times translated
       setDict(translations);
+      console.log(translations);
     };
     getDict();
   }, [bookId]); // dependency
@@ -76,7 +83,7 @@ const TranslationListPage = () => {
     <div className="book">
       <div className="book-header">
         <h3>
-          <Link to={`/book/${bookId}/`}>
+          <Link to={`/book/${bookId}/${bookTitle}`}>
             <ArrowBackIosIcon onClick={() => handleSubmit()} />
           </Link>
         </h3>
@@ -84,27 +91,39 @@ const TranslationListPage = () => {
       </div>
 
       <div className="books-list">
-        {dict?.map((x, index) => (
-          <div key={index} className="translation-container">
-            <TranslationItem
-              key={`term_${index}`}
-              value={x["term"]}
-              type="term"
-            />
-            <TranslationItem
-              key={`definition_${index}`}
-              value={x["definition"]}
-              type="definition"
-              onChange={(e) =>
-                handleOnChange(e, index, "definition", e.target.value)
-              }
-            />
-            <div className="icons">
-              {x["timesTranslated"]}
-              <DeleteIcon cursor="pointer" onClick={() => deleteTranslation(x, index)} />
+        <div className="table-header">
+          <ul>Term</ul>
+          <ul>Definition</ul>
+          <ul>Times Translated</ul>
+        </div>
+        {dict ? (
+          dict?.map((x, index) => (
+            <div key={index} className="translation-container">
+              <TranslationItem
+                key={`term_${index}`}
+                value={x["term"]}
+                type="term"
+              />
+              <TranslationItem
+                key={`definition_${index}`}
+                value={x["definition"]}
+                type="definition"
+                onChange={(e) =>
+                  handleOnChange(e, index, "definition", e.target.value)
+                }
+              />
+              <div className="icons">
+                <div className="timesTranslated">{x["timesTranslated"]}</div>
+                <DeleteIcon
+                  cursor="pointer"
+                  onClick={() => deleteTranslation(x, index)}
+                />
+              </div>
             </div>
-          </div>
-        ))}
+          ))
+        ) : (
+          <span className="loader"></span>
+        )}
       </div>
     </div>
   );

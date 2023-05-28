@@ -4,15 +4,21 @@ from django.db import models
 
 class Book(models.Model):
     title = models.CharField(max_length=200, default='Title', blank=True)
-    body = models.TextField(null=True)
     last_read = models.DateTimeField(auto_now=True)
     normalisation = models.TextField(null=True, blank=True)
     
-    # TODO: create chapter field
-    # TODO: split book into pages
-    
     def __str__(self):
         return f'{self.title}'
+    
+class Chapter(models.Model):
+    book = models.ForeignKey('Book', on_delete=models.CASCADE, related_name="chapters")
+    name = models.CharField(max_length=200, default='Chapter', blank=True)
+    num = models.IntegerField(null=True, blank=True) # TODO: make unique?
+    content = models.TextField(default='content')
+    
+    def __str__(self):
+        return f'{self.book}: {self.name} - {self.content[:30]}'
+    
 
 class Translation(models.Model):
     term = models.CharField(max_length=300, null=True, blank=True)
@@ -23,6 +29,4 @@ class Translation(models.Model):
     
     def __str__(self):
         return f'{self.term}: {self.definition}'
-    
-    # TODO: create chapter foreign key to categorise translations by chapter
     

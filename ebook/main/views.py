@@ -35,14 +35,8 @@ def getBooks(request):
     serializer  = BookSerializer(books, many=True) # serialize multiple objects as a queryset
     return Response(serializer.data)
 
-@api_view(['GET'])
-def getBook(request, pk):
-    book = Book.objects.get(id=pk) # gets one with id
-    serializer = BookSerializer(book, many=False) # serialize one object as a queryset
-    split_words = re.split(r'\s|\n', serializer.data['body'])
-    trimmed_split_words = [re.sub(r'[^a-zA-Z0-9]+$', '', x) for x in split_words]
-    
-    # lemma
+def normalise(book, split_words):
+    trimmed_split_words = [re.sub(r'[^a-zA-ZÀ-ÿ0-9\'-]+', '', x) for x in split_words]
     if book.normalisation is None or book.normalisation == '':
         nlp = spacy.load('fr_core_news_md')
         doc = nlp(f'{" ".join(trimmed_split_words)}')
@@ -63,8 +57,29 @@ def getBook(request, pk):
     else:
         normalisation = json.loads(book.normalisation)
         
+    normalisation_format = {
+        'lemma': 'list of source words'
+    }
+    return normalisation
     
-    return Response({'words': split_words, 'normalisation': normalisation})
+
+@api_view(['GET'])
+def getBook(request, pk):
+    book = Book.objects.get(id=pk) # gets one with id
+    serializer = BookSerializer(book, many=False) # serialize one object as a queryset
+    
+    all_words = []
+    sorted_serializer_chapters = sorted(serializer.data['chapters'], key=lambda d: d['num'])
+    for i, chapter in enumerate(sorted_serializer_chapters):
+        split_words = re.split(r'\s|\n', chapter['content'])
+        sorted_serializer_chapters[i]['content'] = split_words
+        all_words.extend(word.lower() for word in split_words)
+        
+    
+    all_words = list(set(all_words)) # removes duplicates
+    normalisation = normalise(book, all_words)
+    return Response({'chapters': sorted_serializer_chapters, 'normalisation': normalisation})
+
 
 @api_view(['POST'])
 def createTranslation(request, pk):
@@ -127,13 +142,10 @@ def deleteBook(request, pk):
 def getTranslations(request, pk):
     book = Book.objects.get(id=pk) # gets one with id
     serializer = BookSerializer(book, many=False) # serialize one object as a queryset
-    return Response(serializer.data)
+    return Response(serializer.data) # translations dict
 
 @api_view(['GET'])
 def getTranslation(request, pk, word):
     translator = Translator()
     translation = translator.translate(text=word, dest='en', src='fr')
-    if Translation.objects.filter(term=word): # if term exists
-        return JsonResponse({'text':translation.text.lower()})
-    else:
-        return JsonResponse({'text':translation.text.lower()})    
+    return JsonResponse({'definition':translation.text.lower()})    

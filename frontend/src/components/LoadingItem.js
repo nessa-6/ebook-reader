@@ -4,6 +4,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 const LoadingItem = () => {
   const [isLoading, setLoading] = useState(true);
 
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setLoading(false);

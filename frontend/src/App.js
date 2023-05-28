@@ -10,15 +10,19 @@ import LoadingItem from "./components/LoadingItem";
 function App() {
   return (
     <Router>
-      <div className="container dark"> {/* Dark theme */}
+      <div className="container dark">
+        {/* Dark theme */}
         <div className="app">
-          <LoadingItem/>
+          
           <Header />
 
           <Routes>
             <Route path="/" exact element={<LibraryPage />} />
-            <Route path="/book/:id" element={<BookPage />} />
-            <Route path="/book/:id/translations" element={<TranslationListPage />} />
+            <Route path="/book/:id/:title" element={<BookPage />} />
+            <Route
+              path="/book/:id/:title/translations"
+              element={<TranslationListPage />}
+            />
           </Routes>
         </div>
       </div>
