@@ -1,13 +1,14 @@
 from django.shortcuts import render
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
-from .models import Book, Translation
+from .models import Book, Translation, Chapter
 from .serializers import BookSerializer, TranslationSerializer
 from googletrans import Translator
 from django.http import JsonResponse
 import re
 import spacy
 import json
+from .epub import send_to_db
 
 # Create your views here.
 
@@ -64,22 +65,25 @@ def normalise(book, split_words):
     
 
 @api_view(['GET'])
-def getBook(request, pk):
+def getBook(request, pk, chap_num):
     book = Book.objects.get(id=pk) # gets one with id
     serializer = BookSerializer(book, many=False) # serialize one object as a queryset
-    
+        
     all_words = []
     sorted_serializer_chapters = sorted(serializer.data['chapters'], key=lambda d: d['num'])
+
     for i, chapter in enumerate(sorted_serializer_chapters):
         split_words = re.split(r'\s|\n', chapter['content'])
-        sorted_serializer_chapters[i]['content'] = split_words
+
+        split_words_para = [re.split(r'\s', para) for para in chapter['content'].split('\n')]
+        sorted_serializer_chapters[i]['content'] = split_words_para
+        
         all_words.extend(word.lower() for word in split_words)
         
     
     all_words = list(set(all_words)) # removes duplicates
     normalisation = normalise(book, all_words)
-    return Response({'chapters': sorted_serializer_chapters, 'normalisation': normalisation})
-
+    return Response({'title': serializer['title'].value, 'chapter': sorted_serializer_chapters[int(chap_num)-1], 'normalisation': normalisation, 'numChapters': len(sorted_serializer_chapters)})
 
 @api_view(['POST'])
 def createTranslation(request, pk):
@@ -148,4 +152,22 @@ def getTranslations(request, pk):
 def getTranslation(request, pk, word):
     translator = Translator()
     translation = translator.translate(text=word, dest='en', src='fr')
-    return JsonResponse({'definition':translation.text.lower()})    
+    return JsonResponse({'definition':translation.text.lower()})
+
+@api_view(['POST'])
+def createBook(request, book_name):
+    new_book = send_to_db(book_name)
+    if not new_book:
+        return Response({'error': 'No book found'})
+    if Book.objects.filter(title=new_book[0]):
+        return Response({'error': 'Book with title already exists'})
+    book = Book.objects.create(
+        title=new_book[0]
+    )
+    # TODO: make field for author
+    book.save()
+    for chap in new_book[2:]: 
+        chapter = Chapter(book=book, name=chap['name'], num=chap['num'], content=chap['content'])
+        chapter.save()
+    print('Book created')
+    return JsonResponse(book)

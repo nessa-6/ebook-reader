@@ -9,6 +9,8 @@ Imports:
 - npm install @mui/material @emotion/react @emotion/styled
 - npm install @mui/icons-material
 - pip install spacy
+- pip install ebooklib
+- pip install beautifulsoup4
 
 
 use .\env\Scripts\activate to activate virtual environment

@@ -15,6 +15,7 @@ class Chapter(models.Model):
     name = models.CharField(max_length=200, default='Chapter', blank=True)
     num = models.IntegerField(null=True, blank=True) # TODO: make unique?
     content = models.TextField(default='content')
+    # TODO: add sentence field (separate content by sentence for translation purposes)
     
     def __str__(self):
         return f'{self.book}: {self.name} - {self.content[:30]}'

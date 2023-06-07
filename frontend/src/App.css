@@ -125,7 +125,7 @@ a {
   margin:15px auto;
   position: relative;
   color: var(--color-main);
-  left: -100px;
+  left: -10vw;
   box-sizing: border-box;
   animation: shadowRolling 2s linear infinite;
 }
@@ -304,7 +304,7 @@ a {
 ================================*/
 
 .book {
-  min-height: 90%;
+  min-height: 80vh;
   display: flex;
   flex-direction: column;
 }
@@ -360,19 +360,25 @@ a {
 }
 
 .chapter {
+  flex: 1;
   background-color: var(--color-white);
   border: none;
   padding: 16px 12px;
   width: 100%;
-  height: -webkit-fill-available;
+  
   resize: none;
+  overflow-y: auto;
   scrollbar-width: none; /* Firefox */
-  display: flex;
-  flex-wrap: wrap;
 }
 
 .chapter::-webkit-scrollbar {
   display: none;
+}
+
+.paragraph {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 10px 0;
 }
 
 .hovered-text {
@@ -422,9 +428,7 @@ a {
   color: #72BCB3;
 }
 
-.empty {
-  flex: 1;
-}
+
 .css-wjh20t-MuiPagination-ul {
   justify-content: space-evenly;
 }
