@@ -58,9 +58,6 @@ def normalise(book, split_words):
     else:
         normalisation = json.loads(book.normalisation)
         
-    normalisation_format = {
-        'lemma': 'list of source words'
-    }
     return normalisation
     
 
@@ -70,45 +67,72 @@ def getBook(request, pk, chap_num):
     serializer = BookSerializer(book, many=False) # serialize one object as a queryset
         
     all_words = []
-    sorted_serializer_chapters = sorted(serializer.data['chapters'], key=lambda d: d['num'])
+    chapters = serializer.data['chapters']
 
-    for i, chapter in enumerate(sorted_serializer_chapters):
+    for i, chapter in enumerate(chapters):
         split_words = re.split(r'\s|\n', chapter['content'])
 
         split_words_para = [re.split(r'\s', para) for para in chapter['content'].split('\n')]
-        sorted_serializer_chapters[i]['content'] = split_words_para
+        chapters[i]['content'] = split_words_para
         
         all_words.extend(word.lower() for word in split_words)
         
     
     all_words = list(set(all_words)) # removes duplicates
     normalisation = normalise(book, all_words)
-    return Response({'title': serializer['title'].value, 'chapter': sorted_serializer_chapters[int(chap_num)-1], 'normalisation': normalisation, 'numChapters': len(sorted_serializer_chapters)})
+    return Response({'title': serializer['title'].value, 'chapter': chapters[int(chap_num)-1], 'normalisation': normalisation, 'numChapters': len(chapters), 'currentChapter': serializer.data['current_chapter']})
+
 
 @api_view(['POST'])
 def createTranslation(request, pk):
-    data = request.data
-    if Translation.objects.filter(term=data['term'], book_id=pk): # if term exists in the same book
-        translation = Translation.objects.get(term=data['term'], book_id=pk)
+    term = request.data['term']
+    if Translation.objects.filter(term=term, book_id=pk): # if term exists in the same book
+        translation = Translation.objects.get(term=term, book_id=pk)
         translation.timesTranslated += 1
+        
+        lemmas = json.loads(translation.lemma_vals)
+        if term not in lemmas.values():
+            key = list(lemmas)[0]
+            lemmas[key].append(term)
+        
         translation.save()
         return Response('')
     else:
-        if Translation.objects.filter(term=data['term']): # if term exists in a different book
-            translation = Translation.objects.get(term=data['term'])
+        if Translation.objects.filter(term=term): # if term exists in a different book
+            translation = Translation.objects.get(term=term)
             book = Book.objects.get(id=pk)       
             translation.book_id.add(book)
             translation.timesTranslated += 1
+            
+            lemmas = json.loads(translation.lemma_vals)
+            if term not in lemmas.values():
+                key = list(lemmas)[0]
+                lemmas[key].append(term)
+            
             translation.save()
-        else:
+        else: # create new translation
             translator = Translator()
-            definition = translator.translate(text=data['term'], dest='en', src='fr').text.lower()
-            book = Book.objects.filter(id=pk)
+            definition = translator.translate(text=term, dest='en', src='fr').text.lower()
+            book = Book.objects.get(id=pk)
+            
+        
+            normalisation = json.loads(book.normalisation)
+            # get appropriate lemma record
+            term = term
+            hyphenated_terms = re.split(r'-', term)
+            if len(hyphenated_terms) > 1:
+                for t in hyphenated_terms:
+                    lemma_record = [{k:v} for k,v in normalisation.items() if t in v][0]
+            else:
+                lemma_record = [{k:v} for k,v in normalisation.items() if term in v][0]
+
+            
             translation = Translation.objects.create(
-                term=data['term'],
+                term=term,
                 definition=definition,
+                lemma_vals=json.dumps(lemma_record),
             )
-            translation.book_id.set(book)
+            translation.book_id.set([book])
         serializer = TranslationSerializer(translation, many=False)
         return Response(serializer.data)
 
@@ -146,7 +170,14 @@ def deleteBook(request, pk):
 def getTranslations(request, pk):
     book = Book.objects.get(id=pk) # gets one with id
     serializer = BookSerializer(book, many=False) # serialize one object as a queryset
-    return Response(serializer.data) # translations dict
+    translations = []
+    for translation in serializer.data['translations']:
+        lemma_vals = translation.pop('lemma_vals', None)
+        if lemma_vals:
+            lemma_vals = json.loads(lemma_vals)
+            translation['lemma_vals'] = lemma_vals
+        translations.append(translation)
+    return Response(translations) # translations dict
 
 @api_view(['GET'])
 def getTranslation(request, pk, word):
@@ -169,5 +200,11 @@ def createBook(request, book_name):
     for chap in new_book[2:]: 
         chapter = Chapter(book=book, name=chap['name'], num=chap['num'], content=chap['content'])
         chapter.save()
-    print('Book created')
     return JsonResponse(book)
+
+@api_view(['PUT'])
+def updateCurrentChapter(request, pk, chap_num):
+    book = Book.objects.get(id=pk)
+    book.current_chapter = chap_num
+    book.save()
+    return Response(data='CurrentChapter updated', status=200)

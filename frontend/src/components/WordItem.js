@@ -6,13 +6,16 @@ const WordItem = ({
   handleTranslation,
   word,
   trimmedWord,
-  lemma,
   translated,
-  translations,
+  lemma_dict,
   translatedWord,
   setHoveredIndex,
   underlineColour,
 }) => {
+  let lemma_vals = null
+  if (lemma_dict) {
+    lemma_vals = Object.values(lemma_dict)[0];
+  }
   return (
     <div
       key={index}
@@ -20,7 +23,7 @@ const WordItem = ({
       onClick={(e) => handleTranslation(e, trimmedWord, index)}
       onMouseLeave={() => setHoveredIndex(null)}
       style={
-        (translated && hoveredIndex === index) || translations.includes(lemma)
+        (translated && hoveredIndex === index) || (lemma_vals && lemma_vals.includes(trimmedWord))
           ? {
               textDecoration: "underline",
               textDecorationColor: underlineColour,

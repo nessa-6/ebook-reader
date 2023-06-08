@@ -9,7 +9,12 @@ import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 // TODO: Make external links internal (popup)
 // TODO: show menu inline
 
-const BookHeader = ({ bookId, bookTitle, handleDelete }) => {
+const BookHeader = ({
+  bookId,
+  bookTitle,
+  handleDelete,
+  currentChapterNum,
+}) => {
   let navigate = useNavigate();
 
   let [anchorEl, setAnchorEl] = React.useState(null);
@@ -21,7 +26,13 @@ const BookHeader = ({ bookId, bookTitle, handleDelete }) => {
     setAnchorEl(null);
   };
 
-  let handleBack = () => {
+  let handleBack = async () => {
+    await fetch(`/main/library/${bookId}/${currentChapterNum}/update/`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
     navigate("/"); // sends user back to homepage
   };
 

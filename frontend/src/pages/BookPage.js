@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import WordItem from "../components/WordItem";
@@ -14,10 +14,8 @@ import {
 // TODO: add search functionality to hamburger
 // TODO: add react heatmap for progress
 // add dictionary hyperlink in hamburger for any failed translations
-// recognise different variants as same word (eg grand and grande, joue and jouer)
-// TODO: underline based on lemma, but store based on individual word
 
-//TODO: optimization - memoization, virtualized rendering, debouncing translation requests
+//TODO: optimization - memoization, virtualized rendering, debouncing translation
 
 const BookPage = () => {
   let params = useParams();
@@ -31,9 +29,7 @@ const BookPage = () => {
   let [translatedWord, setTranslatedWord] = useState(null);
   let [translated, isTranslated] = useState(false);
   let [translations, setTranslations] = useState([]);
-  let [terms, setTerms] = useState({}); // maps original terms to lemma terms
   let [hoveredIndex, setHoveredIndex] = useState(null);
-  let [allLemmas, setAllLemmas] = useState({});
   let [currentChapterNum, setCurrentChapterNum] = useState(1);
   let [currentChapter, setCurrentChapter] = useState(null);
 
@@ -46,7 +42,7 @@ const BookPage = () => {
   const getTranslations = useCallback(async () => {
     let res = await fetch(`/main/library/${bookId}/translations/`);
     let data = await res.json();
-    setTranslations(data["translations"]);
+    setTranslations(data);
   }, [bookId]); // no external dependencies so function is memoized and will not be recreated on every render
 
   useEffect(() => {
@@ -61,10 +57,10 @@ const BookPage = () => {
         );
         let data = await response.json();
         setCurrentChapter(data["chapter"]);
-        if (data["normalisation"] !== null) {
-          setAllLemmas(data["normalisation"]);
+        if (!book?.length) {
+          setCurrentChapterNum(data['currentChapter'])
+          setChapterNum(data["numChapters"]);
         }
-        setChapterNum(data["numChapters"]);
         setBook((prevChaps) =>
           [...prevChaps, data["chapter"]].sort((a, b) => a.num - b.num)
         );
@@ -78,30 +74,6 @@ const BookPage = () => {
     }
   }, [bookId, currentChapterNum, book, getTranslations]);
 
-  const getLemmaByValue = useCallback(
-    (value) => {
-      if (allLemmas) {
-        let lemma = Object.keys(allLemmas).find((lemma) =>
-          allLemmas[lemma].includes(value)
-        );
-        if (lemma == null) {
-          lemma = value.toLowerCase();
-        }
-        return lemma;
-      }
-    },
-    [allLemmas]
-  );
-
-  useEffect(() => {
-    // Update lemma and original term lists when translations change
-    setTerms(
-      translations.reduce((acc, dict) => {
-        acc[dict["term"]] = getLemmaByValue(dict["term"]);
-        return acc;
-      }, {})
-    );
-  }, [translations, getLemmaByValue]);
 
   // Handles the change event of the Slider component to update the current chapter
   const handleChapterChange = (event, value) => {
@@ -124,6 +96,7 @@ const BookPage = () => {
         getTranslation(trimmedWord, indexBook);
         break;
       case 2: // double click
+        console.log("Created translation for ", trimmedWord);
         createTranslation(trimmedWord);
         break;
       default:
@@ -133,7 +106,8 @@ const BookPage = () => {
 
   const getTranslation = async (word, index) => {
     let translation = "";
-    if (word in terms) {
+    let terms = translations.map((translation) => translation.term.trim());
+    if (translations && word in terms) {
       translation = translations.find(
         (dict) => dict.term.trim() === word.trim()
       );
@@ -148,36 +122,38 @@ const BookPage = () => {
   };
 
   const getCounterByTerm = useCallback(
-    (translations, lemma) => {
-      let translation = "";
-
-      // Check if allLemmas and allLemmas[lemma] exist and are arrays
-      if (allLemmas && Array.isArray(allLemmas[lemma])) {
-        translation = translations.filter((dict) =>
-          allLemmas[lemma].includes(dict.term.trim())
-        );
-      } else if (allLemmas && !Array.isArray(allLemmas[lemma])) {
-        translation = translations.filter(
-          (dict) => dict.term.trim() === lemma.trim().toLowerCase()
-        );
-      }
+    (word) => {
+      let translation = translations.find((dict) =>
+        Object.values(dict.lemma_vals).some((lemmaList) =>
+          lemmaList.includes(word)
+        )
+      );
 
       if (translation) {
-        // Find the maximum 'timesTranslated' value
-        const maxTimesTranslated = translation.reduce(
-          (maxValue, dictionary) => {
-            const timesTranslated = dictionary.timesTranslated;
-            return timesTranslated > maxValue ? timesTranslated : maxValue;
-          },
-          0
-        );
+        const lemmas = translation.lemma_vals;
+        let maxTimesTranslated = 0;
+        Object.keys(lemmas).map(function (key) {
+          for (const lemma of lemmas[key]) {
+            // Find the corresponding translation dictionary with matching lemma and get its timesTranslated value
+            const matchingTranslation = translations.find(
+              (dict) => dict.term.trim() === lemma.trim().toLowerCase()
+            );
+
+            if (
+              matchingTranslation &&
+              matchingTranslation.timesTranslated > maxTimesTranslated
+            ) {
+              maxTimesTranslated = matchingTranslation.timesTranslated;
+            }
+          }
+        });
 
         return maxTimesTranslated;
       } else {
         return 0;
       }
     },
-    [allLemmas]
+    [translations]
   );
 
   const createTranslation = async (trimmedWord) => {
@@ -188,7 +164,6 @@ const BookPage = () => {
       },
       body: JSON.stringify({
         term: trimmedWord,
-        book_id: bookId,
       }),
     });
     getTranslations();
@@ -214,69 +189,75 @@ const BookPage = () => {
   };
 
   const cache = new CellMeasurerCache({
-    fixedWidth: false,
+    fixedWidth: true,
+    defaultHeight: 100,
   });
 
-  const rowRenderer = ({ index, key, style, parent }) => {
-    const paragraph = currentChapter?.content[index];
-
-    return (
-      <CellMeasurer
-        key={key}
-        cache={cache}
-        parent={parent}
-        columnIndex={0}
-        rowIndex={index}
-      >
-        {({ registerChild, measure }) => (
-          <div
-            className="paragraph"
-            ref={registerChild}
-            style={style}
-            onLoad={measure}
-          >
-            {paragraph.map((word, index) =>
-              notWords.includes(word) === false ? (
-                <WordItem
-                  key={index}
-                  index={index}
-                  hoveredIndex={hoveredIndex}
-                  handleTranslation={handleTranslation}
-                  word={word}
-                  trimmedWord={word
-                    .replace(/[^a-zA-ZÀ-ÿ0-9'-]+/, "")
-                    .toLowerCase()}
-                  lemma={getLemmaByValue(
-                    word.replace(/[^a-zA-ZÀ-ÿ0-9'-]+/, "").toLowerCase()
-                  )}
-                  translated={translated}
-                  translations={Object.keys(terms).map(function (key) {
-                    return terms[key];
-                  })}
-                  translatedWord={translatedWord}
-                  setHoveredIndex={setHoveredIndex}
-                  underlineColour={getUnderlineColour(
-                    getCounterByTerm(
-                      translations,
-                      getLemmaByValue(
-                        word.replace(/[^a-zA-ZÀ-ÿ0-9'-]+/, "").toLowerCase()
-                      )
-                    )
-                  )}
-                />
-              ) : word === "" ? (
-                <p key={index} className="break"></p>
-              ) : (
-                <p key={index} className="word">
-                  {word}
-                </p>
-              )
-            )}
-          </div>
-        )}
-      </CellMeasurer>
-    );
+  const trimWord = (word) => {
+    return word
+      .toLowerCase()
+      .replace(/[^a-zA-ZÀ-ÿ0-9'-]+/, "")
+      .replace("d'", "")
+      .replace("l'", "");
   };
+
+  const rowRenderer = useCallback(
+    ({ index, key, style, parent }) => {
+      const paragraph = currentChapter?.content[index];
+
+      return (
+        <CellMeasurer
+          key={key}
+          cache={cache}
+          parent={parent}
+          columnIndex={0}
+          rowIndex={index}
+        >
+          {({ registerChild, measure }) => (
+            <div
+              className="paragraph"
+              ref={registerChild}
+              style={style}
+              onLoad={measure}
+            >
+              {paragraph.map((word, idx) =>
+                notWords.includes(word) === false ? (
+                  <WordItem
+                    key={`${index}-${idx}`}
+                    index={`${index}-${idx}`}
+                    hoveredIndex={hoveredIndex}
+                    handleTranslation={handleTranslation}
+                    word={word}
+                    trimmedWord={trimWord(word)}
+                    translated={translated}
+                    lemma_dict={
+                      translations?.find((dict) =>
+                        Object.values(dict.lemma_vals).some((lemmaList) =>
+                          lemmaList.includes(trimWord(word))
+                        )
+                      )?.lemma_vals
+                    }
+                    translatedWord={translatedWord}
+                    setHoveredIndex={setHoveredIndex}
+                    underlineColour={getUnderlineColour(
+                      getCounterByTerm(trimWord(word))
+                    )}
+                  />
+                ) : word === "" ? (
+                  <p key={`${index}-${idx}`} className="break"></p>
+                ) : (
+                  <p key={`${index}-${idx}`} className="word">
+                    {word}
+                  </p>
+                )
+              )}
+            </div>
+          )}
+        </CellMeasurer>
+      );
+    },
+    [currentChapter, cache]
+  );
 
   return (
     <div className="book">
@@ -284,6 +265,7 @@ const BookPage = () => {
         bookId={bookId}
         bookTitle={bookTitle}
         handleDelete={handleDelete}
+        currentChapterNum={currentChapterNum}
       />
 
       <p className="chapter-name">{currentChapter?.name}</p>
@@ -308,7 +290,7 @@ const BookPage = () => {
       <Slider
         className="page-slider"
         aria-label="page-slider"
-        defaultValue={1}
+        value={currentChapterNum}
         onChange={handleChapterChange}
         getAriaValueText={valuetext}
         step={1}

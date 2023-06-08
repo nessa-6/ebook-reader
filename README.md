@@ -13,10 +13,18 @@ Imports:
 - pip install beautifulsoup4
 
 
-use .\env\Scripts\activate to activate virtual environment
-use python manage.py runserver in /ebook to run Django backend
-use npm start in /frontend to run React frontend
-
 django admin: username admin, password admin, email admin@admin.com
 
 reference: https://www.youtube.com/watch?v=tYKRAXIio28
+
+.\env\Scripts\activate
+cd ebook
+python manage.py runserver
+
+
+.\env\Scripts\activate
+cd frontend
+npm start
+
+python manage.py makemigrations
+python manage.py migrate

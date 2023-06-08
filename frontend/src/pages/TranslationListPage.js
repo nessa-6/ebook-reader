@@ -19,8 +19,7 @@ const TranslationListPage = () => {
   useEffect(() => {
     let getDict = async () => {
       let response = await fetch(`/main/library/${bookId}/translations/`);
-      let data = await response.json();
-      let translations = data["translations"];
+      let translations = await response.json();
       translations.sort(function (a, b) {
         return b.timesTranslated - a.timesTranslated;
       }); // sort by number of times translated
