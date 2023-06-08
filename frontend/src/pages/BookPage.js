@@ -14,8 +14,8 @@ import {
 // TODO: add search functionality to hamburger
 // TODO: add react heatmap for progress
 // add dictionary hyperlink in hamburger for any failed translations
+// TODO: stay on same page on refresh
 
-//TODO: optimization - memoization, virtualized rendering, debouncing translation
 
 const BookPage = () => {
   let params = useParams();
@@ -23,7 +23,7 @@ const BookPage = () => {
   let bookId = params.id;
   let bookTitle = params.title;
   // TODO: add current Chapter into params
-  const notWords = [" ", "?", "!", "-"]; // specific words that should not be treated as valid words
+  const notWords = [" ", "?", "!", "-"]; // specific characters that should not be treated as valid words
   let [book, setBook] = useState([]); // array of chapters for the book once accessed
   let [chapterNum, setChapterNum] = useState(null);
   let [translatedWord, setTranslatedWord] = useState(null);
@@ -80,6 +80,23 @@ const BookPage = () => {
     setCurrentChapterNum(value);
   };
 
+  useEffect(() => {
+    window.onbeforeunload = async () => {
+      await fetch(`/main/library/${bookId}/${currentChapterNum}/update/`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+    };
+    return () => {
+        window.onbeforeunload = null;
+    };
+
+  }, [bookId, currentChapterNum]);
+
+  
+
   let handleDelete = async () => {
     await fetch(`/main/library/${bookId}/delete/`, {
       method: "DELETE",
@@ -96,7 +113,6 @@ const BookPage = () => {
         getTranslation(trimmedWord, indexBook);
         break;
       case 2: // double click
-        console.log("Created translation for ", trimmedWord);
         createTranslation(trimmedWord);
         break;
       default:
@@ -132,21 +148,26 @@ const BookPage = () => {
       if (translation) {
         const lemmas = translation.lemma_vals;
         let maxTimesTranslated = 0;
-        Object.keys(lemmas).map(function (key) {
-          for (const lemma of lemmas[key]) {
-            // Find the corresponding translation dictionary with matching lemma and get its timesTranslated value
-            const matchingTranslation = translations.find(
-              (dict) => dict.term.trim() === lemma.trim().toLowerCase()
-            );
-
-            if (
-              matchingTranslation &&
-              matchingTranslation.timesTranslated > maxTimesTranslated
-            ) {
-              maxTimesTranslated = matchingTranslation.timesTranslated;
+        if (Object.values(lemmas).length === 1) {
+          maxTimesTranslated = translation.timesTranslated
+        } else {
+          Object.keys(lemmas).map(function (key) {
+            for (const lemma of lemmas[key]) {
+              // Find the corresponding translation dictionary with matching lemma and get its timesTranslated value
+              const matchingTranslation = translations.find(
+                (dict) => dict.term.trim() === lemma.trim().toLowerCase()
+              );
+  
+              if (
+                matchingTranslation &&
+                matchingTranslation.timesTranslated > maxTimesTranslated
+              ) {
+                maxTimesTranslated = matchingTranslation.timesTranslated;
+              }
             }
-          }
-        });
+          });
+        }
+
 
         return maxTimesTranslated;
       } else {
@@ -191,7 +212,7 @@ const BookPage = () => {
   const cache = new CellMeasurerCache({
     fixedWidth: true,
     defaultHeight: 100,
-  });
+    });
 
   const trimWord = (word) => {
     return word

@@ -91,7 +91,7 @@ def createTranslation(request, pk):
         translation.timesTranslated += 1
         
         lemmas = json.loads(translation.lemma_vals)
-        if term not in lemmas.values():
+        if lemmas and term not in lemmas.values():
             key = list(lemmas)[0]
             lemmas[key].append(term)
         
@@ -118,13 +118,17 @@ def createTranslation(request, pk):
         
             normalisation = json.loads(book.normalisation)
             # get appropriate lemma record
-            term = term
             hyphenated_terms = re.split(r'-', term)
             if len(hyphenated_terms) > 1:
                 for t in hyphenated_terms:
                     lemma_record = [{k:v} for k,v in normalisation.items() if t in v][0]
             else:
-                lemma_record = [{k:v} for k,v in normalisation.items() if term in v][0]
+                print(term)
+                lemma_record = [{k:v} for k,v in normalisation.items() if term in v]
+                try:
+                    lemma_record = lemma_record[0]
+                except IndexError:
+                    lemma_record = {term: term}
 
             
             translation = Translation.objects.create(

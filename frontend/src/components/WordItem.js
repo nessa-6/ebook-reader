@@ -16,6 +16,7 @@ const WordItem = ({
   if (lemma_dict) {
     lemma_vals = Object.values(lemma_dict)[0];
   }
+
   return (
     <div
       key={index}
