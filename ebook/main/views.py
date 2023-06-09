@@ -37,7 +37,8 @@ def getBooks(request):
     return Response(serializer.data)
 
 def normalise(book, split_words):
-    trimmed_split_words = [re.sub(r'[^a-zA-ZÀ-ÿ0-9\'-]+', '', x) for x in split_words]
+    replace_contractions = [x.replace(u'\u2019', "'") for x in split_words]
+    trimmed_split_words = [re.sub(r'[^a-zA-ZÀ-ÿ0-9\'-]+', '', x) for x in replace_contractions]
     if book.normalisation is None or book.normalisation == '':
         nlp = spacy.load('fr_core_news_md')
         doc = nlp(f'{" ".join(trimmed_split_words)}')
@@ -80,7 +81,7 @@ def getBook(request, pk, chap_num):
     
     all_words = list(set(all_words)) # removes duplicates
     normalisation = normalise(book, all_words)
-    return Response({'title': serializer['title'].value, 'chapter': chapters[int(chap_num)-1], 'normalisation': normalisation, 'numChapters': len(chapters), 'currentChapter': serializer.data['current_chapter']})
+    return Response({'title': serializer['title'].value, 'chapter': chapters[int(chap_num)-1], 'normalisation': normalisation, 'numChapters': len(chapters), 'currentChapterNum': serializer.data['current_chapter']})
 
 
 @api_view(['POST'])
@@ -118,17 +119,19 @@ def createTranslation(request, pk):
         
             normalisation = json.loads(book.normalisation)
             # get appropriate lemma record
-            hyphenated_terms = re.split(r'-', term)
+            noContractions = re.sub(r"d'|l'|n'|s'|c'|j'|m'|t'", "" , term)
+            hyphenated_terms = re.split(r'-', noContractions)
             if len(hyphenated_terms) > 1:
                 for t in hyphenated_terms:
                     lemma_record = [{k:v} for k,v in normalisation.items() if t in v][0]
             else:
-                print(term)
-                lemma_record = [{k:v} for k,v in normalisation.items() if term in v]
+                print(noContractions)
+                lemma_record = [{k:v} for k,v in normalisation.items() if noContractions in v]
+                print(lemma_record)
                 try:
                     lemma_record = lemma_record[0]
                 except IndexError:
-                    lemma_record = {term: term}
+                    lemma_record = {noContractions: noContractions}
 
             
             translation = Translation.objects.create(

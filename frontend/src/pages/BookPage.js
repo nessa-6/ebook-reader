@@ -56,10 +56,11 @@ const BookPage = () => {
           `/main/library/${bookId}/${currentChapterNum}`
         );
         let data = await response.json();
-        setCurrentChapter(data["chapter"]);
-        if (!book?.length) {
-          setCurrentChapterNum(data['currentChapter'])
+        if (!book?.length) { // on first render
+          setCurrentChapterNum(data['currentChapterNum'])
           setChapterNum(data["numChapters"]);
+        } else {
+          setCurrentChapter(data["chapter"]);
         }
         setBook((prevChaps) =>
           [...prevChaps, data["chapter"]].sort((a, b) => a.num - b.num)
@@ -148,14 +149,14 @@ const BookPage = () => {
       if (translation) {
         const lemmas = translation.lemma_vals;
         let maxTimesTranslated = 0;
-        if (Object.values(lemmas).length === 1) {
+        if (Object.values(lemmas)[0].length === 1) {
           maxTimesTranslated = translation.timesTranslated
         } else {
           Object.keys(lemmas).map(function (key) {
             for (const lemma of lemmas[key]) {
               // Find the corresponding translation dictionary with matching lemma and get its timesTranslated value
               const matchingTranslation = translations.find(
-                (dict) => dict.term.trim() === lemma.trim().toLowerCase()
+                (dict) => splitContractions(trimWord(dict.term)) === trimWord(lemma)
               );
   
               if (
@@ -214,13 +215,17 @@ const BookPage = () => {
     defaultHeight: 100,
     });
 
-  const trimWord = (word) => {
+  let trimWord = (word) => { // removes punctuations
     return word
       .toLowerCase()
-      .replace(/[^a-zA-ZÀ-ÿ0-9'-]+/, "")
-      .replace("d'", "")
-      .replace("l'", "");
+      .replace(/[^a-zA-ZÀ-ÿ0-9'\u2019-]+/, "")
+      .replace('\u2019', "'")
   };
+
+  let splitContractions = (trimmedWord) => {
+    return trimmedWord.replace(/d'|l'|n'|s'|c'|j'|m'|t'/, "")
+
+  }
 
   const rowRenderer = useCallback(
     ({ index, key, style, parent }) => {
@@ -250,18 +255,19 @@ const BookPage = () => {
                     handleTranslation={handleTranslation}
                     word={word}
                     trimmedWord={trimWord(word)}
+                    noContractionsWord={splitContractions(trimWord(word))}
                     translated={translated}
                     lemma_dict={
                       translations?.find((dict) =>
                         Object.values(dict.lemma_vals).some((lemmaList) =>
-                          lemmaList.includes(trimWord(word))
+                          lemmaList.includes(splitContractions(trimWord(word)))
                         )
                       )?.lemma_vals
                     }
                     translatedWord={translatedWord}
                     setHoveredIndex={setHoveredIndex}
                     underlineColour={getUnderlineColour(
-                      getCounterByTerm(trimWord(word))
+                      getCounterByTerm(splitContractions(trimWord(word)))
                     )}
                   />
                 ) : word === "" ? (

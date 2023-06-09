@@ -52,7 +52,7 @@ def send_to_db(name):
             'chap_n',
             ['p_let', 'txt_courant_justif']
         ],
-        'legend': [laselection_format, 'books/legend - marie lu.epub', 'id', 'calibre5', ['calibre1', 'small1', 'initial']]
+        'legend': [laselection_format, r'C:\Users\vanes_vv65bc4\VS Code\ebook-reader\ebook\main\books\legend - marie lu.epub', 'id', 'calibre5', ['calibre1', 'small1', 'initial']]
         # Add other books here
     }
 
@@ -68,10 +68,9 @@ def send_to_db(name):
 
 
 # Usage example
-#send_to_db('laselection')
+#send_to_db('legend')
 
     
-
 
 def prohpetiedeglendower():
     book = epub.read_epub('Stiefvater, Maggie - La prophétie de Glendower (2011, Hachette) - libgen.li.epub') # returns instance of ebooklib.epub.EpubBook class

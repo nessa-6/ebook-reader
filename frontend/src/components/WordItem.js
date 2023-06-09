@@ -6,6 +6,7 @@ const WordItem = ({
   handleTranslation,
   word,
   trimmedWord,
+  noContractionsWord,
   translated,
   lemma_dict,
   translatedWord,
@@ -13,8 +14,24 @@ const WordItem = ({
   underlineColour,
 }) => {
   let lemma_vals = null
-  if (lemma_dict) {
-    lemma_vals = Object.values(lemma_dict)[0];
+  let underlineWord = function () {
+    if (lemma_dict) {
+      lemma_vals = Object.values(lemma_dict)[0];
+      if (lemma_vals) {
+        if (!Array.isArray(lemma_vals)) {
+          lemma_vals = [lemma_vals]
+        }
+        if (lemma_vals.includes(noContractionsWord) && noContractionsWord) {
+          return true
+        } else {
+          return false
+        }
+      } else {
+        return false
+      }
+    } else {
+      return false
+    }
   }
 
   return (
@@ -24,7 +41,7 @@ const WordItem = ({
       onClick={(e) => handleTranslation(e, trimmedWord, index)}
       onMouseLeave={() => setHoveredIndex(null)}
       style={
-        (translated && hoveredIndex === index) || (lemma_vals && lemma_vals.includes(trimmedWord))
+        (translated && hoveredIndex === index) || (underlineWord())
           ? {
               textDecoration: "underline",
               textDecorationColor: underlineColour,
@@ -38,7 +55,7 @@ const WordItem = ({
       )}
 
       {word}
-    </div>
+      </div>
   );
 };
 

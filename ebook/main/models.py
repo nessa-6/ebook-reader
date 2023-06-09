@@ -6,7 +6,7 @@ class Book(models.Model):
     title = models.CharField(max_length=200, default='Title', blank=True)
     last_read = models.DateTimeField(auto_now=True)
     normalisation = models.TextField(null=True, blank=True)
-    current_chapter = models.IntegerField(null=True)
+    current_chapter = models.IntegerField(null=True, default=1)
     
     def __str__(self):
         return f'{self.title}'
