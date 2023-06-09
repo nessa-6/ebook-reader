@@ -25,15 +25,18 @@ const BookHeader = ({
   let handleClose = () => {
     setAnchorEl(null);
   };
+  let handleBack = () => {
+    handleUpdate();
+    navigate("/"); // sends user back to homepage
+  };
 
-  let handleBack = async () => {
+  let handleUpdate = async () => {
     await fetch(`/main/library/${bookId}/${currentChapterNum}/update/`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
       },
     });
-    navigate("/"); // sends user back to homepage
   };
 
   return (
@@ -69,7 +72,10 @@ const BookHeader = ({
         }}
       >
         <MenuItem onClick={handleClose}>Progress</MenuItem>
-        <Link to={`/book/${bookId}/${bookTitle}/translations`}>
+        <Link
+          onClick={handleUpdate}
+          to={`/book/${bookId}/${bookTitle}/translations`}
+        >
           <MenuItem>Translations</MenuItem>
         </Link>
         <MenuItem onClick={handleDelete}>Delete</MenuItem>

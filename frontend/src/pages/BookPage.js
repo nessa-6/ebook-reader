@@ -82,18 +82,28 @@ const BookPage = () => {
   };
 
   useEffect(() => {
-    window.onbeforeunload = async () => {
-      await fetch(`/main/library/${bookId}/${currentChapterNum}/update/`, {
+    const handleBeforeUnload = (event) => {
+      event.preventDefault();
+      event.returnValue = "";
+
+      saveProgress();
+    };
+
+    const saveProgress = () => {
+      // Perform the PUT request or save the progress to the server
+      fetch(`/main/library/${bookId}/${currentChapterNum}/update/`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
       });
     };
-    return () => {
-        window.onbeforeunload = null;
-    };
 
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
   }, [bookId, currentChapterNum]);
 
   

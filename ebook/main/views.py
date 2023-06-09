@@ -146,13 +146,12 @@ def createTranslation(request, pk):
 @api_view(['PUT'])
 def updateTranslation(request, pk):
     data = request.data # should get array of modified translation dicts
-    translation_ids = [t['id'] for t in data] # gets id of each translation if in book
+    translation_ids = [t['id'] for t in data] # gets id (int) of each translation if in book
+    translation_definitions = [t['definition'] for t in data]
     translations = Translation.objects.filter(pk__in=translation_ids)
-    for i, instance in enumerate(translations):
-        serializer = TranslationSerializer(instance=instance, data=data[i])
-
-        if serializer.is_valid():
-            serializer.save()
+    for translation, definition in zip(translations, translation_definitions):
+        translation.definition = definition
+        translation.save()
 
     return Response(data)
 

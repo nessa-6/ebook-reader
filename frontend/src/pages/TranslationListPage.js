@@ -66,6 +66,7 @@ const TranslationListPage = () => {
     }
   };
 
+  // all edited words update on arrow click
   let handleSubmit = () => {
     if (modifiedIndices.length > 0) {
       let modifiedDicts = modifiedIndices
@@ -76,7 +77,6 @@ const TranslationListPage = () => {
   };
 
   // in translations page you can edit translation, see wiki dictionary, number of times clicked, previews of sentences examples
-  // get rid of submit, all should change on arrow click
   return (
     <div className="book">
       <div className="book-header">
