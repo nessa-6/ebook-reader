@@ -147,9 +147,11 @@ const BookPage = () => {
   };
 
   const getTranslation = async (word, index) => {
+    // if word has been clicked before
     let translation = translations.find(
       (dict) => dict.term.trim() === word.trim()
     );
+    // if first time clicked
     if (translation === undefined) {
       let res = await fetch(`/main/library/${bookId}/translations/${word}`);
       translation = await res.json();
@@ -168,10 +170,11 @@ const BookPage = () => {
         )
       );
 
+
       if (translation) {
         const lemmas = translation.lemma_vals;
         let maxTimesTranslated = 0;
-        if (Object.values(lemmas)[0].length === 1) {
+        if (Object.values(lemmas).length === 1) { // if only one lemma value in the lemma dict (ie no variations of word)
           maxTimesTranslated = translation.timesTranslated
         } else {
           Object.keys(lemmas).map(function (key) {

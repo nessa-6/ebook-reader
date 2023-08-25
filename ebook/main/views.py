@@ -96,9 +96,9 @@ def createTranslation(request, pk):
     if Translation.objects.filter(term=term, book_id=pk): # if term exists in the same book
         translation = Translation.objects.get(term=term, book_id=pk)
         translation.timesTranslated += 1
-        
+
         lemmas = json.loads(translation.lemma_vals)
-        if lemmas and term not in lemmas.values():
+        if lemmas and term not in lemmas.values(): # if there is a lemma for this word AND ...
             key = list(lemmas)[0]
             lemmas[key].append(term)
         
@@ -131,9 +131,7 @@ def createTranslation(request, pk):
                 for t in hyphenated_terms:
                     lemma_record = [{k:v} for k,v in normalisation.items() if t in v][0]
             else:
-                print(noContractions)
                 lemma_record = [{k:v} for k,v in normalisation.items() if noContractions in v]
-                print(lemma_record)
                 try:
                     lemma_record = lemma_record[0]
                 except IndexError:
