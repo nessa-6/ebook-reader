@@ -5,7 +5,6 @@ import Header from "./components/Header";
 import LibraryPage from "./pages/LibraryPage";
 import BookPage from "./pages/BookPage";
 import TranslationListPage from './pages/TranslationListPage'
-import LoadingItem from "./components/LoadingItem";
 
 function App() {
   return (
@@ -13,7 +12,6 @@ function App() {
       <div className="container dark">
         {/* Dark theme */}
         <div className="app">
-          
           <Header />
 
           <Routes>

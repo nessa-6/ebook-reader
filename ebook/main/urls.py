@@ -10,7 +10,7 @@ urlpatterns = [
     path('library/<int:pk>/translations/delete/', views.deleteTranslation, name="delete-translation"),
     path('library/<int:pk>/translations/create/', views.createTranslation, name="create-translation"),
     path('library/<int:pk>/<int:chap_num>/update/', views.updateCurrentChapter, name="chapter"),
-    path('library/<int:pk>/<int:chap_num>/', views.getBook, name="book"),
+    path('library/<int:pk>/<int:chap_num>/', views.getChapter, name="chapter"),
     path('library/<int:pk>/delete/', views.deleteBook, name="delete-book"),
     path('library/<int:pk>/translations/<str:word>/', views.getTranslation),
 

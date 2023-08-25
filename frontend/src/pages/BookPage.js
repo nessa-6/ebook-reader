@@ -11,6 +11,7 @@ import {
   CellMeasurerCache,
 } from "react-virtualized";
 
+
 // TODO: add search functionality to hamburger
 // TODO: add react heatmap for progress
 // add dictionary hyperlink in hamburger for any failed translations
@@ -23,7 +24,7 @@ const BookPage = () => {
   let bookId = params.id;
   let bookTitle = params.title;
   // TODO: add current Chapter into params
-  const notWords = [" ", "?", "!", "-"]; // specific characters that should not be treated as valid words
+  const notWords = [" ", "?", "!", "-", "—", ":", ";"]; // specific characters that should not be treated as valid words
   let [book, setBook] = useState([]); // array of chapters for the book once accessed
   let [chapterNum, setChapterNum] = useState(null);
   let [translatedWord, setTranslatedWord] = useState(null);
@@ -56,8 +57,9 @@ const BookPage = () => {
           `/main/library/${bookId}/${currentChapterNum}`
         );
         let data = await response.json();
-        if (!book?.length) { // on first render
-          setCurrentChapterNum(data['currentChapterNum'])
+        if (!book?.length) {
+          // on first render
+          setCurrentChapterNum(data["currentChapterNum"]);
           setChapterNum(data["numChapters"]);
         } else {
           setCurrentChapter(data["chapter"]);
@@ -75,7 +77,6 @@ const BookPage = () => {
     }
   }, [bookId, currentChapterNum, book, getTranslations]);
 
-
   // Handles the change event of the Slider component to update the current chapter
   const handleChapterChange = (event, value) => {
     setCurrentChapterNum(value);
@@ -85,11 +86,15 @@ const BookPage = () => {
     const handleBeforeUnload = (event) => {
       event.preventDefault();
       event.returnValue = "";
-
+  
       saveProgress();
     };
-
+  
     const saveProgress = () => {
+      const scrollPosition = window.scrollY;
+      console.log(scrollPosition)
+      sessionStorage.setItem("scrollPosition", scrollPosition.toString());
+  
       // Perform the PUT request or save the progress to the server
       fetch(`/main/library/${bookId}/${currentChapterNum}/update/`, {
         method: "PUT",
@@ -98,11 +103,21 @@ const BookPage = () => {
         },
       });
     };
-
+  
+    const handleLoad = () => {
+      const scrollPosition = sessionStorage.getItem("scrollPosition");
+      if (scrollPosition) {
+        window.scrollTo(0, parseInt(scrollPosition));
+        sessionStorage.removeItem("scrollPosition");
+      }
+    };
+  
     window.addEventListener("beforeunload", handleBeforeUnload);
-
+    window.addEventListener("load", handleLoad);
+  
     return () => {
       window.removeEventListener("beforeunload", handleBeforeUnload);
+      window.removeEventListener("load", handleLoad);
     };
   }, [bookId, currentChapterNum]);
 
@@ -132,16 +147,13 @@ const BookPage = () => {
   };
 
   const getTranslation = async (word, index) => {
-    let translation = "";
-    let terms = translations.map((translation) => translation.term.trim());
-    if (translations && word in terms) {
-      translation = translations.find(
-        (dict) => dict.term.trim() === word.trim()
-      );
-    } else {
+    let translation = translations.find(
+      (dict) => dict.term.trim() === word.trim()
+    );
+    if (translation === undefined) {
       let res = await fetch(`/main/library/${bookId}/translations/${word}`);
       translation = await res.json();
-    }
+    }      
 
     setHoveredIndex(index);
     setTranslatedWord(translation.definition);

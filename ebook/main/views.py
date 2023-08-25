@@ -22,10 +22,16 @@ def getRoutes(request):
             'description': 'Returns an array of books'
         },
         {
-            'Endpoint': '/library/id',
+            'Endpoint': '/library/id/chapterNum',
             'method': 'GET',
             'body': None,
-            'description': 'Returns a single book object'
+            'description': 'Returns a single chapter object from a book'
+        },
+        {
+            'Endpoint': '/library/id/translations',
+            'method': 'GET',
+            'body': None,
+            'description': 'Returns an array of translations from a book'
         },
     ]
     return Response(routes)
@@ -63,7 +69,7 @@ def normalise(book, split_words):
     
 
 @api_view(['GET'])
-def getBook(request, pk, chap_num):
+def getChapter(request, pk, chap_num):
     book = Book.objects.get(id=pk) # gets one with id
     serializer = BookSerializer(book, many=False) # serialize one object as a queryset
         

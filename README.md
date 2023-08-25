@@ -28,3 +28,5 @@ npm start
 
 python manage.py makemigrations
 python manage.py migrate
+
+TODO:
